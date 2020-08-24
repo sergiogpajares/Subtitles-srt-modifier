@@ -3,7 +3,9 @@ This code is a quick implementation of a little parser to modify srt files in or
 
 # Usage
 There's no need of instalation. Just type into your shell:
-  python3 subtitle_time_corrector <desaired_delay> <path to the .srt file> <(optional) name appended to your file afeter conversion>
+  ```bash
+  python3 subtitle_time_corrector <desaired_delay> <path to the .srt file> <(optional) name appended to your file afeter conversion
+  ```
 And the program will create a new .srt file with the same path in wich all the subtitles will be delayed by a time of <delay>.
 
 # Disclaimer
