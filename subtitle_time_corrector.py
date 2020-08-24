@@ -6,7 +6,7 @@
 #  
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
-#  the Free Software Foundation; either version 2 of the License, or
+#  the Free Software Foundation; either version 3 of the License, or
 #  (at your option) any later version.
 #  
 #  This program is distributed in the hope that it will be useful,
@@ -24,8 +24,11 @@
 # ==================================================================== #
 # --------------------------- IMPORTS -------------------------------- #
 # ==================================================================== #
-import os
+import os, sys
 from math import log10, ceil
+
+#Shutting of debuger info
+sys.tracebacklimit=0
 
 # ==================================================================== #
 # ------------------------- DEFINITIONS ------------------------------ #
@@ -58,7 +61,7 @@ class time:
         '''
         Sum up two time objects
         '''
-        result=time(str(a))
+        result=time(str(a)) #temporal copy
                
         result.s += b.s
         result.m += b.m + result.s // 60
@@ -73,7 +76,7 @@ class time:
         '''
         Substract two time objects
         '''
-        result=time(str(a))
+        result=time(str(a)) #temporal copy
         
         result.s -= b.s
         result.m -= b.m + a.s // 60
@@ -113,69 +116,81 @@ class time:
         string ='{:02d}:{:02d}:{:06.3f}'.format(self.h,self.m,self.s)
         return string.replace('.',decimal_separator)
 
+def AutoPathRenamer(path):
+    if path[-4] == '.': #case there extension
+        extension = path[-4:]
+        path = path[:-4]+new_name+extension
+        
+        #check if the file already exists
+        if os.path.isfile(path):
+            print('file <{}> already exist'.format(path))
+            counter=1
+            path = path[:-4]+str(counter)+extension
+            while os.path.isfile(path):
+                counter += 1
+                digits = ceil(log10(counter))
+                print('file <{}> already exist'.format(path))
+                path = path[:-(digits+4)]+str(counter)+extension
+            
+    else:# case there is no extension
+        path = path + new_name
+        
+        #check if the file already exists
+        if os.path.isfile(path):
+            print('file <{}> already exist'.format(path))
+            counter=1
+            path = path[:-1]+str(counter)+extension
+            while os.path.isfile(path):
+                counter += 1
+                digits = ceil(log10(counter))
+                print('file <{}> already exist'.format(path))
+                path = path[:-digits]+str(counter)+extension
+    return path
+
+
 # ==================================================================== #        
 # ------------------------- MAIN DATA -------------------------------- #
 # ==================================================================== #
 decimal_separator = ','
-delay = .5 #seconds
-path = '5x04  Doctor Who __ The Time of Angels.en.srt'
-new_name = '_modified' #name appended at the end of out file
+
+if len(sys.argv) < 3:
+    raise ValueError("You must provide the delay in seconds and the path\
+ to the file while calling this program in the format\n\tpython3 {}\
+ <delay> <path>".format(sys.argv[0]))
+
+#reading path from shell program call
+path = sys.argv[2]
+if not os.path.isfile(path) : raise ValueError("The file <{}> does not \
+exist or {} is not a valid path\nYou must provide the path to the file \
+.srt while executing this file in the format\n\tpython3 {} <delay> <path>\
+is not a valid path".format(path,sys.argv[0]))
+#reading delay from shell program call
+try:
+    delay = float(sys.argv[1]) #seconds
+except:
+    raise ValueError("You must provide the delay in seconds whie \
+executing this file in the format\n\tpython 3 {} <delay> <path>\n {} '\
+is not a valid delay".format(sys.argv[0]),delay)
+
+
+#reading new_name form shell program call or using default
+try:
+    new_name = sys.argv[3]
+except:
+    new_name = '_sync' #name appended at the end of out file
 
 
 # ==================================================================== #
 # -------------------------- LET'S ROCK ------------------------------ #
 # ==================================================================== #
-'''
-a = time('00:01:58,325')
-b = time('00:05:03,000')
-print(a)
-print(b)
-print(a+b)
-print(a)
-print(b)
-print(a.seconds_delay(1))
-'''
-
-
 # -------------------------- FILE NAMING ----------------------------- #
-if not os.path.isfile(path) : raise ValueError('The file does not exist')
 print('Opening files')
-
 
 #open input file
 i = open(path, 'r')
 
 #open output file
-if path[-4] == '.': #case there extension
-    extension = path[-4:]
-    path = path[:-4]+new_name+extension
-    
-    #check if the file already exists
-    if os.path.isfile(path):
-        print('file <{}> already exist'.format(path))
-        counter=1
-        path = path[:-4]+str(counter)+extension
-        while os.path.isfile(path):
-            counter += 1
-            digits = ceil(log10(counter))
-            print('file <{}> already exist'.format(path))
-            path = path[:-(digits+4)]+str(counter)+extension
-            
-else:# case there no extension
-    path = path + new_name
-
-    #check if the file already exists
-    if os.path.isfile(path):
-        print('file <{}> already exist'.format(path))
-        counter=1
-        path = path[:-1]+str(counter)+extension
-        while os.path.isfile(path):
-            counter += 1
-            digits = ceil(log10(counter))
-            print('file <{}> already exist'.format(path))
-            path = path[:-digits]+str(counter)+extension
-
-
+path = AutoPathRenamer(path)
 o = open(path , 'w')
 
 # ------------------------ FILE PROCESING ---------------------------- #
